@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>At Tea Time — Epic Classroom Battle</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+*{box-sizing:border-box}
+:root{--pink:#ff3f88;--purple:#7047d9;--gold:#ffc94a;--ink:#21172f;--glass:rgba(255,255,255,.88)}
+body{
+ margin:0;min-height:100vh;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);
+ background:
+ radial-gradient(circle at 15% 15%,#fff7c9 0 8%,transparent 22%),
+ radial-gradient(circle at 85% 10%,#ffd7e9 0 8%,transparent 25%),
+ linear-gradient(135deg,#130f2d,#25134a 45%,#101a42);
+ overflow-x:hidden;
+}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.35;
+ background-image:radial-gradient(#fff 1px,transparent 1px);background-size:28px 28px}
+.wrap{max-width:1050px;margin:auto;padding:18px}
+.card{
+ background:var(--glass);border:1px solid #ffffffaa;border-radius:30px;padding:24px;
+ box-shadow:0 20px 70px #0005, inset 0 1px #fff;backdrop-filter:blur(14px);margin-bottom:18px;
+}
+.hero{text-align:center;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;background:#ff3f8830;right:-80px;top:-100px}
+.logo{font-size:62px;filter:drop-shadow(0 5px 8px #0003);animation:float 2.5s ease-in-out infinite}
+h1{font-size:clamp(32px,7vw,60px);margin:0;background:linear-gradient(90deg,#ff3f88,#7c4cff,#168bff);-webkit-background-clip:text;color:transparent;font-weight:1000}
+.sub{font-weight:700;color:#725b82;margin:6px 0 18px}
+
+.musicbar{text-align:center;margin:10px 0}
+.tabs{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+button{border:0;border-radius:16px;padding:13px 18px;font-weight:900;font-size:16px;cursor:pointer;transition:.16s;box-shadow:0 5px 12px #0001}
+button:hover{transform:translateY(-3px) scale(1.01)}button:active{transform:scale(.97)}
+.primary{color:white;background:linear-gradient(135deg,#ff3f88,#7047d9)}
+.gold{color:#4d3200;background:linear-gradient(135deg,#ffd45a,#ff9e3d)}
+.green{color:white;background:linear-gradient(135deg,#21bd70,#087d9f)}
+.dark{color:white;background:#27203d}.gray{background:#eee7f5}
+input{width:100%;padding:15px 17px;border:2px solid #e6d9ef;border-radius:15px;font-size:17px;margin:7px 0;outline:none}
+input:focus{border-color:#8b5cf6;box-shadow:0 0 0 4px #8b5cf622}
+.hidden{display:none!important}
+.code{font-size:34px;font-weight:1000;letter-spacing:6px;text-align:center;background:#fff3b0;border:3px dashed #f0ae25;padding:13px;border-radius:18px;margin:12px 0}
+.players{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px 0}.pill{background:#fff;padding:8px 13px;border-radius:999px;box-shadow:0 4px 12px #0001;font-weight:800}
+.status{text-align:center;font-weight:800;margin:10px}
+.gameHead{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}.scoreBox{text-align:right;font-weight:1000;color:#7047d9;font-size:20px}.round{text-align:center;font-weight:1000;color:#777}
+.progress{height:12px;background:#eadff1;border-radius:99px;overflow:hidden;margin:15px 0}.progress div{height:100%;background:linear-gradient(90deg,#ff3f88,#ffc94a,#7047d9);width:0;transition:.4s}
+.timer{position:relative;margin:12px auto;width:112px;height:112px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#ff3f88 var(--p,100%),#eee 0);font-size:30px;font-weight:1000}
+.timer:before{content:"";position:absolute;inset:8px;background:white;border-radius:50%}.timer span{position:relative;z-index:2}
+.question{text-align:center;font-size:clamp(22px,4vw,32px);font-weight:1000;margin:15px 0}
+.pron{background:#fbf4ff;border:1px solid #ead8f3;padding:11px;border-radius:13px;text-align:center;color:#765b82;font-weight:700}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}.opt{width:100%;text-align:left;background:white;border:3px solid #e8dceb;min-height:70px;font-size:18px}.opt:hover{border-color:#ff3f88;background:#fff7fb}.opt.correct{background:#dff9e9;border-color:#25a85d}.opt.wrong{background:#ffe1e4;border-color:#df4050}.opt:disabled{cursor:default}
+.feedback{text-align:center;min-height:44px;font-weight:1000;font-size:20px;padding:8px}
+.combo{text-align:center;font-weight:1000;color:#ff3f88;min-height:30px}.waiting{text-align:center;padding:20px;color:#725b82;font-weight:800}
+.rank{width:100%;border-collapse:separate;border-spacing:0 8px}.rank th{color:#725b82}.rank td{background:white;padding:12px;text-align:center}.rank td:first-child{border-radius:14px 0 0 14px}.rank td:last-child{border-radius:0 14px 14px 0}.medal{font-size:26px}
+.podium{display:flex;justify-content:center;align-items:end;gap:10px;height:260px;margin:10px 0 25px}.place{width:28%;max-width:210px;border-radius:20px 20px 8px 8px;text-align:center;padding:14px 8px;font-weight:1000;box-shadow:0 10px 30px #0002}.p1{height:220px;background:linear-gradient(#ffe27a,#ffad38)}.p2{height:175px;background:linear-gradient(#e9edf5,#9ba7b8)}.p3{height:145px;background:linear-gradient(#efc6a4,#b87448)}
+.bigscore{font-size:56px;font-weight:1000;color:#7047d9;text-align:center}
+.confetti{position:fixed;top:-20px;font-size:24px;animation:fall 2.4s linear forwards;z-index:99;pointer-events:none}
+.flash{animation:flash .45s ease}.pop{animation:pop .4s ease}.shake{animation:shake .4s ease}
+@keyframes float{50%{transform:translateY(-9px)}}@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}@keyframes flash{50%{transform:scale(1.04);filter:brightness(1.2)}}@keyframes pop{50%{transform:scale(1.07)}}@keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@media(max-width:650px){.options{grid-template-columns:1fr}.gameHead{grid-template-columns:1fr;text-align:center}.scoreBox{text-align:center}.podium{height:220px}.p1{height:180px}.p2{height:145px}.p3{height:120px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<section class="card hero">
+ <div class="logo">🍵👻⚡</div>
+ <h1>AT TEA TIME BATTLE</h1>
+ <div class="sub">THE CANTERVILLE GHOST • ห้องเรียนประลองภาษาอังกฤษ</div>
+ <div class="musicbar"><button class="dark" id="musicBtn" onclick="toggleMusic()">🎵 เปิดเพลง Battle</button></div><div class="tabs">
+  <button id="hostTab" class="primary" onclick="mode('host')">👨‍🏫 สร้างห้องแข่งขัน</button>
+  <button id="joinTab" class="gray" onclick="mode('join')">🎮 เข้าร่วมเกม</button>
+ </div>
+</section>
+
+<section id="host" class="card">
+<h2>👑 ห้องของผู้จัดเกม</h2>
+<input id="hostName" value="ครู" placeholder="ชื่อผู้จัดเกม">
+<button class="primary" onclick="createRoom()">✨ สร้างห้องใหม่</button>
+<div id="hostInfo" class="hidden">
+ <p class="status">ส่งรหัสนี้ให้นักเรียนทุกคน</p>
+ <div id="roomCode" class="code">------</div>
+ <button class="gold" onclick="copyCode()">📋 คัดลอกรหัส</button>
+ <div class="status">ผู้เล่นในห้อง</div><div id="hostPlayers" class="players"></div>
+ <div class="card" style="padding:16px;background:#fff8ff">
+  <b>🎛️ แผงควบคุม</b><br><br>
+  <button class="primary" onclick="startGame()">🚀 เริ่มศึก!</button>
+  <button class="green" onclick="nextQ()">⚔️ ข้อต่อไป</button>
+  <button class="gold" onclick="openBoard()">🏆 ตารางคะแนน</button>
+ </div>
+</div>
+</section>
+
+<section id="join" class="card hidden">
+<h2>🎮 เข้าร่วมศึก</h2>
+<input id="studentName" placeholder="ชื่อเล่น">
+<input id="joinCode" placeholder="รหัสห้อง เช่น A1B2C3">
+<button class="primary" onclick="join()">🚀 เข้าสนาม!</button>
+<div id="joinStatus" class="status"></div>
+</section>
+
+<section id="game" class="card hidden">
+ <div class="gameHead"><div id="myName"><b>👤</b></div><div class="round" id="round">รอเริ่มเกม</div><div class="scoreBox">⭐ <span id="myScore">0</span></div></div>
+ <div class="progress"><div id="bar"></div></div>
+ <div class="timer hidden" id="timer"><span>15</span></div>
+ <div id="waiting" class="waiting">🔥 เตรียมตัวให้พร้อม! ครูกำลังเปิดสนาม...</div>
+ <div id="questionBox" class="hidden">
+  <div class="question" id="question"></div><div class="pron" id="pron"></div>
+  <div class="combo" id="combo"></div><div class="options" id="options"></div>
+  <div class="feedback" id="feedback"></div>
+ </div>
+</section>
+
+<section id="board" class="card hidden">
+<h2 style="text-align:center">🏆 LIVE LEADERBOARD</h2>
+<div id="podium" class="podium"></div>
+<table class="rank"><thead><tr><th>อันดับ</th><th>ผู้เล่น</th><th>คะแนน</th></tr></thead><tbody id="rankBody"></tbody></table>
+<br><button class="primary" onclick="closeBoard()">กลับเข้าสนาม</button>
+</section>
+
+<section id="finish" class="card hidden" style="text-align:center">
+<div style="font-size:65px">🏆🎉👑</div><h2>THE TEA CHAMPION</h2>
+<p>จบการแข่งขันแล้ว!</p><div id="finalPodium" class="podium"></div>
+<button class="primary" onclick="location.reload()">🔄 เริ่มเกมใหม่</button>
+</section>
+</div>
+
+<script>
+const Q=[
+["“Some tea, Mrs Otis?” หมายความว่าอะไร?","ซัม ที, มิสซิส โอทิส?",["คุณโอทิส ดื่มชาสักหน่อยไหมครับ?","คุณโอทิสต้องการน้ำตาลไหมครับ?","คุณโอทิสจะกลับบ้านไหมครับ?","คุณโอทิสชอบกาแฟไหมครับ?"],0],
+["“Yes, please.” หมายความว่าอะไร?","เยส, พลีซ",["ไม่ครับ/ค่ะ ขอบคุณ","ครับ/ค่ะ ขอด้วย","ลาก่อน","ขอโทษครับ/ค่ะ"],1],
+["“Milk” แปลว่าอะไร?","มิลค์",["ชา","น้ำตาล","นม","น้ำ"],2],
+["“Thank you” ใช้เพื่ออะไร?","แธงค์ ยู",["ขอบคุณ","ปฏิเสธ","ถามราคา","ขอโทษ"],0],
+["“Sugar” แปลว่าอะไร?","ชู-การ์",["นม","น้ำตาล","ชา","ขนมปัง"],1],
+["“Two, please.” หมายถึงอะไร?","ทู, พลีซ",["ขอสองช้อน","ขอสองแก้ว","ขออีกครั้ง","ไม่ใส่น้ำตาล"],0],
+["“Here you are.” ใช้เมื่อใด?","เฮียร์ ยู อาร์",["ทักทาย","บอกลา","ยื่นสิ่งของให้ผู้อื่น","ขอโทษ"],2],
+["คำใดเป็นคำพูดสุภาพในการขอสิ่งของ?","Which word is polite?",["please","sugar","milk","tea"],0],
+["ถ้าต้องการชา ควรตอบ “Would you like some tea?” ว่าอะไร?","วูด ยู ไลค์ ซัม ที?",["No, thank you.","Yes, please.","Here you are.","Two, please."],1],
+["ข้อใดแปลว่า “ขอบคุณ”?","Choose the correct phrase.",["Here you are.","Yes, please.","Thank you.","Some tea?"],2]
+];
+
+let peer,conn,host=false,conns=[],players={},qi=-1,myId="",myName="",answered=false,timerInt,seconds=15,myCombo=0;
+
+
+let ac=null,music=false,mt=null,mi=0;
+function audioInit(){if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume()}
+function beep(f,d=.12,t="triangle",v=.035,delay=0){if(!ac)return;let o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,ac.currentTime+delay);g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+delay+d);o.connect(g);g.connect(ac.destination);o.start(ac.currentTime+delay);o.stop(ac.currentTime+delay+d)}
+const notes=[110,130.81,146.83,164.81,146.83,130.81,98,110];
+function musicTick(){if(!music)return;let f=notes[mi++%notes.length];beep(f,.18,"sawtooth",.018);beep(f*2,.10,"square",.009,.05);if(mi%4===0)beep(f*3,.08,"triangle",.012,.1);mt=setTimeout(musicTick,190)}
+function toggleMusic(){audioInit();music=!music;document.getElementById("musicBtn").textContent=music?"🔊 ปิดเพลง Battle":"🎵 เปิดเพลง Battle";if(music){mi=0;musicTick()}else clearTimeout(mt)}
+function mode(x){document.getElementById("host").classList.toggle("hidden",x!="host");document.getElementById("join").classList.toggle("hidden",x!="join");document.getElementById("hostTab").className=x=="host"?"primary":"gray";document.getElementById("joinTab").className=x=="join"?"primary":"gray"}
+function createRoom(){
+ host=true;let id=Math.random().toString(36).slice(2,8);peer=new Peer("tea-"+id);
+ peer.on("open",()=>{document.getElementById("roomCode").textContent=id.toUpperCase();document.getElementById("hostInfo").classList.remove("hidden")});
+ peer.on("connection",c=>{c.on("open",()=>{conns.push(c);c.on("data",d=>hostData(c,d));c.on("close",()=>{delete players[c.peer];sync()})})})
+}
+function hostData(c,d){
+ if(d.t=="join"){players[c.peer]={name:d.name,score:0,answered:false,combo:0};c.send({t:"welcome",name:d.name});sync()}
+ if(d.t=="answer"&&d.q==qi&&!players[c.peer].answered){players[c.peer].answered=true;if(d.correct){players[c.peer].score+=10;players[c.peer].combo=(players[c.peer].combo||0)+1}else players[c.peer].combo=0;sync()}
+}
+function sync(){let ps=Object.values(players);ps.sort((a,b)=>b.score-a.score);conns.forEach(c=>c.open&&c.send({t:"players",players}));renderPlayers()}
+function renderPlayers(){document.getElementById("hostPlayers").innerHTML=Object.values(players).map(p=>`<span class="pill">👤 ${p.name} · ⭐${p.score}</span>`).join("")}
+function startGame(){qi=0;sendQ()}
+function nextQ(){if(qi<0){startGame();return}qi++;if(qi>=Q.length){finish();return}sendQ()}
+function sendQ(){
+ Object.values(players).forEach(p=>p.answered=false);
+ let x=Q[qi];broadcast({t:"q",q:qi,text:x[0],pron:x[1],opts:x[2]});renderHost(x);beginTimer()
+}
+function broadcast(d){conns.forEach(c=>c.open&&c.send(d))}
+function renderHost(x){showGame();document.getElementById("round").textContent=`⚔️ ROUND ${qi+1}/${Q.length}`;document.getElementById("question").textContent=x[0];document.getElementById("pron").textContent="🔊 "+x[1];document.getElementById("waiting").classList.add("hidden");document.getElementById("questionBox").classList.remove("hidden");document.getElementById("options").innerHTML=x[2].map((a,i)=>`<button class="opt" disabled>${i+1}. ${a}</button>`).join("");document.getElementById("bar").style.width=((qi)/Q.length*100)+"%"}
+function beginTimer(){clearInterval(timerInt);seconds=15;drawTimer();timerInt=setInterval(()=>{seconds--;drawTimer();if(seconds<=0){clearInterval(timerInt)}},1000)}
+function drawTimer(){let t=document.getElementById("timer");t.classList.remove("hidden");t.style.setProperty("--p",(seconds/15*100)+"%");t.querySelector("span").textContent=seconds;if(seconds<=5)t.classList.add("shake");else t.classList.remove("shake")}
+function join(){
+ let name=document.getElementById("studentName").value.trim()||"นักเรียน",code=document.getElementById("joinCode").value.trim().toLowerCase().replace(/^tea-/,"");if(!code)return alert("ใส่รหัสห้องก่อน");
+ myName=name;peer=new Peer();peer.on("open",id=>{myId=id;conn=peer.connect("tea-"+code);conn.on("open",()=>{conn.send({t:"join",name});document.getElementById("join").classList.add("hidden");showGame();document.getElementById("joinStatus").textContent="✅ เข้าสนามแล้ว!"});conn.on("data",studentData)})
+}
+function studentData(d){
+ if(d.t=="welcome"){document.getElementById("myName").textContent="👤 "+d.name}
+ if(d.t=="q"){answered=false;showGame();document.getElementById("round").textContent=`⚔️ ROUND ${d.q+1}/${Q.length}`;document.getElementById("question").textContent=d.text;document.getElementById("pron").textContent="🔊 "+d.pron;document.getElementById("waiting").classList.add("hidden");document.getElementById("questionBox").classList.remove("hidden");document.getElementById("bar").style.width=((d.q)/Q.length*100)+"%";document.getElementById("feedback").textContent="";document.getElementById("combo").textContent="";document.getElementById("options").innerHTML=d.opts.map((a,i)=>`<button class="opt" onclick="answer(${i},this,${d.q})">${i+1}. ${a}</button>`).join("");beginTimer()}
+ if(d.t=="players"){let me=d.players.find(p=>p.name==myName);if(me){document.getElementById("myScore").textContent=me.score;myCombo=me.combo||0}renderBoard(d.players)}
+ if(d.t=="finish"){clearInterval(timerInt);showFinish()}
+}
+function answer(i,b,q){
+ if(answered)return;answered=true;clearInterval(timerInt);document.querySelectorAll(".opt").forEach(x=>x.disabled=true);
+ let ok=Q[q][3]==i;b.classList.add(ok?"correct":"wrong");
+ if(ok){audioInit();beep(523,.1);beep(659,.1,"triangle",.035,.1);beep(784,.18,"triangle",.04,.2);myCombo++;let bonus=seconds>=10?5:seconds>=5?2:0;document.getElementById("feedback").textContent=bonus?`⚡ ถูกต้อง! +10 และโบนัสเร็ว +${bonus}`:"🔥 ถูกต้อง! +10";document.getElementById("combo").textContent=myCombo>=2?`🔥 COMBO x${myCombo}!`:"";conn.send({t:"answer",q,correct:true})}
+ else{audioInit();beep(180,.18,"sawtooth",.04);myCombo=0;document.getElementById("feedback").textContent="💥 พลาด!";conn.send({t:"answer",q,correct:false})}
+}
+function showGame(){document.getElementById("game").classList.remove("hidden")}
+function renderBoard(ps){
+ let arr=[...ps].sort((a,b)=>b.score-a.score);document.getElementById("rankBody").innerHTML=arr.map((p,i)=>`<tr><td class="medal">${i==0?"🥇":i==1?"🥈":i==2?"🥉":i+1}</td><td>${p.name}</td><td>⭐ ${p.score}</td></tr>`).join("");
+ let order=[arr[1],arr[0],arr[2]].filter(Boolean);document.getElementById("podium").innerHTML=order.map((p,i)=>`<div class="place ${i==0?"p2":i==1?"p1":"p3"}"><div class="medal">${i==0?"🥈":i==1?"🥇":"🥉"}</div><div>${p.name}</div><div style="font-size:25px">${p.score}</div></div>`).join("")
+}
+function openBoard(){document.getElementById("board").classList.remove("hidden");renderBoard(Object.values(players))}
+function closeBoard(){document.getElementById("board").classList.add("hidden")}
+function finish(){clearInterval(timerInt);broadcast({t:"finish"});showFinish();openBoard();confetti()}
+function showFinish(){document.getElementById("finish").classList.remove("hidden");renderBoard(Object.values(players));document.getElementById("finalPodium").innerHTML=document.getElementById("podium").innerHTML;confetti()}
+function copyCode(){navigator.clipboard?.writeText(document.getElementById("roomCode").textContent);alert("คัดลอกรหัสห้องแล้ว")}
+function confetti(){for(let i=0;i<45;i++){let s=document.createElement("span");s.className="confetti";s.textContent=["🎉","✨","⭐","🍵","👻","💜"][Math.floor(Math.random()*6)];s.style.left=Math.random()*100+"vw";s.style.animationDelay=Math.random()*.8+"s";document.body.appendChild(s);setTimeout(()=>s.remove(),3200)}}
+</script>
+</body>
+</html>
